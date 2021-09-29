@@ -1,0 +1,184 @@
+
+<!doctype html>
+<!--
+Copyright 2021 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Purpose: to simulate an updated Merchant POS that can provide payment transaction data in an 'NFC Tag' to let read by phone, calculate response and return in NFC Tag operation
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Sample illustrating the use of Web NFC.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Prepare Merchant NFC Tag</title>
+    <script>
+      // Add a global error event listener early on in the page load, to help ensure that browsers
+      // which don't support specific functionality still end up displaying a meaningful message.
+      window.addEventListener('error', function(error) {
+        if (ChromeSamples && ChromeSamples.setStatus) {
+          console.error(error);
+          ChromeSamples.setStatus(error.message + ' (Your browser may not support this feature.)');
+          error.preventDefault();
+        }
+      });
+    </script>
+    
+    
+    
+   <link rel="stylesheet" href="main.css">
+    
+    
+  </head>
+
+  <body>
+    
+    <h2>Prepare Merchant NFC Tag - write transaction data</h2>
+    The following is an example of merchant transaction data, taken from W3C Payment Request API <br><br>
+    <code>
+		const request = new PaymentRequest([{
+		  supportedMethods: 'https://bobpay.xyz/pay',
+		  data: {
+		    transactionId: '****'
+		  }
+		}], {
+		  displayItems: [{
+		    label: 'Anvil L/S Crew Neck - Grey M x1',
+		    amount: { currency: 'USD', value: '22.15' }
+		  }],
+		  total: {
+		    label: 'Total due',
+		    amount: { currency: 'USD', value : '22.15' }
+		  }
+		});
+	</code>	
+	<br><br>
+<button id="scanButton">Scan</button>
+<button id="writeButton">Write</button>
+
+<script>
+  var ChromeSamples = {
+    log: function() {
+      var line = Array.prototype.slice.call(arguments).map(function(argument) {
+        return typeof argument === 'string' ? argument : JSON.stringify(argument);
+      }).join(' ');
+
+      document.querySelector('#log').textContent += line + '\n';
+    },
+
+    clearLog: function() {
+      document.querySelector('#log').textContent = '';
+    },
+
+    setStatus: function(status) {
+      document.querySelector('#status').textContent = status;
+    },
+
+    setContent: function(newContent) {
+      var content = document.querySelector('#content');
+      while(content.hasChildNodes()) {
+        content.removeChild(content.lastChild);
+      }
+      content.appendChild(newContent);
+    }
+  };
+</script>
+
+<h3>Live Console Output</h3>
+<div id="output" class="output">
+  <div id="content"></div>
+  <div id="status"></div>
+  <pre id="log"></pre>
+</div>
+
+
+<script>
+  if (/Chrome\/(\d+\.\d+.\d+.\d+)/.test(navigator.userAgent)){
+    // Let's log a warning if the sample is not supposed to execute on this
+    // version of Chrome.
+    if (89 > parseInt(RegExp.$1)) {
+      ChromeSamples.setStatus('Warning! Keep in mind this sample has been tested with Chrome ' + 89 + '.');
+    }
+  }
+</script>
+
+
+
+<script>
+log = ChromeSamples.log;
+
+if (!("NDEFReader" in window))
+  ChromeSamples.setStatus(
+    "Web NFC is not available.\n" +
+      'Please make sure the "Experimental Web Platform features" flag is enabled on Android.'
+  );
+</script>
+
+
+  
+    
+      <script>scanButton.addEventListener("click", async () => {
+  log("User clicked scan button");
+
+  try {
+    const ndef = new NDEFReader();
+    await ndef.scan();
+    log("> Scan started");
+
+    ndef.addEventListener("readingerror", () => {
+      log("Argh! Cannot read data from the NFC tag. Try another one?");
+    });
+
+    ndef.addEventListener("reading", ({ message, serialNumber }) => {
+      log(`> Serial Number: ${serialNumber}`);
+      log(`> Records: (${message.records.length})`);
+    });
+  } catch (error) {
+    log("Argh! " + error);
+  }
+});
+
+writeButton.addEventListener("click", async () => {
+  log("Tap NFC tag to write data");
+
+  try {
+    const ndef = new NDEFReader();     // URL encoded W3C Payment Request  => use https://www.urldecoder.org/ to decode nicely
+    await ndef.write("const%20request%20%3D%20new%20PaymentRequest%28%5B%7B%0A%20%20supportedMethods%3A%20%27https%3A%2F%2Fbobpay.xyz%2Fpay%27%2C%0A%20%20data%3A%20%7B%0A%20%20%20%20transactionId%3A%20%27%2A%2A%2A%2A%27%0A%20%20%7D%0A%7D%5D%2C%20%7B%0A%20%20displayItems%3A%20%5B%7B%0A%20%20%20%20label%3A%20%27Anvil%20L%2FS%20Crew%20Neck%20-%20Grey%20M%20x1%27%2C%0A%20%20%20%20amount%3A%20%7B%20currency%3A%20%27USD%27%2C%20value%3A%20%2722.15%27%20%7D%0A%20%20%7D%5D%2C%0A%20%20total%3A%20%7B%0A%20%20%20%20label%3A%20%27Total%20due%27%2C%0A%20%20%20%20amount%3A%20%7B%20currency%3A%20%27USD%27%2C%20value%20%3A%20%2722.15%27%20%7D%0A%20%20%7D%0A%7D%29%3B");
+    log("> Message written");
+  } catch (error) {
+    log("Argh! " + error);
+  }
+});
+</script>
+    
+
+  
+
+
+
+    
+    <script>
+      /* jshint ignore:start */
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-53563471-1', 'auto');
+      ga('send', 'pageview');
+      /* jshint ignore:end */
+    </script>
+  </body>
+</html>
