@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<!--
+Copyright (C) 2018 Lukas Buchs
+license https://github.com/lbuchs/WebAuthn/blob/master/LICENSE MIT
+-->
+<html>
+    <head>
+        <title>WebAuthn Test</title>
+        <meta charset="UTF-8">
+	    <script src="./vendor/jquery/dist/jquery.min.js"></script>    
+	    <!-- Handles the WebAuthn Part  -->     
+	    <script src="init.js"></script>    
+    </head>
+    <body>
+            <div class="form">
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>Simple working Demo for WebAuthn <a href="https://github.com/lbuchs/WebAuthn">lbuchs/WebAuthn</a> library.</div>
+                <div>
+                    <div>&nbsp;</div>
+                    <table>
+                        <tbody><tr>
+                                <td>
+                                    <button type="button" onclick="newregistration()">&#10133; new registration</button>
+                                </td>
+                                <td>
+                                    <button type="button" onclick="checkregistration()">&#10068; check registration</button>
+                                </td>
+                                <td>
+                                    <button type="button" onclick="clearregistration()">&#9249; clear all registrations</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+    </body>
+</html>
